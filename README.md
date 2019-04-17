@@ -1,3 +1,3 @@
 # Blockbusters
 
-Github Pages link: jasonmehroziad.github.io
+Github Pages link: jasonmehroziad.github.io/Blockbusters
