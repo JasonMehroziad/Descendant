@@ -15,9 +15,9 @@ Stages:
 # Approach
 Descent is trained with deep Q-learning to recognize the best option for every state of its climb down. The agent is able to perceive adjacent blocks, but its decision making is reliant on the following algorithm: 
 (code snippet of main algorithm)
-The code above is based on this Q-learning reward function:
-(screenshot of equation)
-The algorithm is dependent on these factors 
+The code above is based on this Q-learning reward function: 
+![image not found](https://github.com/JasonMehroziad/Descent/blob/master/docs/images/formula.PNG)
+The algorithm is dependent on these factors: 
 (explanation of variables in code & equation)
 We fit this deep Q-learning method to Descent's goal by setting the following reward and penalty values.
 (Rewards and penalties)
