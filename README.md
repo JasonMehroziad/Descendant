@@ -1,3 +1,3 @@
-# Blockbusters
+# Descent
 
-Github Pages link: [Blockbusters](https://jasonmehroziad.github.io/Blockbusters/ "Project Website")
+Github Pages link: [Descent](https://jasonmehroziad.github.io/Descent/ "Project Website")
