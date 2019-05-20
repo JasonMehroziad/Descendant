@@ -29,9 +29,9 @@ The agent is trained on a basic structure. Once training is complete, it (should
 
 # Resources Used
 We used the following python libraries in implementing the deep Q-learning algorithm: 
-  -keras
-  -tensorflow 
-  -numpy
+  - keras
+  - tensorflow 
+  - numpy
   
 The following articles were the basis of our design: 
   - https://keon.io/deep-q-learning/?fbclid=IwAR2WyQjJg7nFgQeF_p72_Bt8FSkGCc4ZhJqcRipT2cmnb6MtbYu-mA7bTT0
