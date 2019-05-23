@@ -4,10 +4,8 @@ import keras
 import random
 import time 
 
-cardinal_directions = {'n': 180, 'e': -90, 's': 0, 'w': 90}
-
 class Memory:
-	def __init__(self, max_size = 2000):
+	def __init__(self, max_size):
 		self.buffer = deque(maxlen = max_size)
 
 	def add(self, experience):
@@ -25,7 +23,7 @@ class DQNAgent:
 	def __init__(self, state_size, action_size, learning_rate, discount_rate, epsilon, epsilon_min, epsilon_decay):
 		self.state_size = state_size
 		self.action_size = action_size
-		self.memory = Memory()
+		self.memory = Memory(16000)
 		self.learning_rate = learning_rate
 		self.discount_rate = discount_rate
 		self.epsilon = epsilon
@@ -35,8 +33,8 @@ class DQNAgent:
 
 	def build_model(self):
 		model = keras.models.Sequential()
-		model.add(keras.layers.Dense(24, input_dim=self.state_size, activation='relu'))
-		model.add(keras.layers.Dense(24, activation='relu'))
+		model.add(keras.layers.Dense(9, input_dim=self.state_size, activation='relu'))
+		model.add(keras.layers.Dense(6, activation='relu'))
 		model.add(keras.layers.Dense(self.action_size, activation='linear'))
 		model.compile(loss='mse', optimizer=keras.optimizers.Adam(lr=self.learning_rate))
 		return model
@@ -46,7 +44,9 @@ class DQNAgent:
 
 	def act(self, state):
 		if np.random.rand() < self.epsilon:
+			print("Random Action....: ", end = "")
 			return random.randrange(self.action_size)
+		print("Calculated Action: ", end = "")
 		return np.argmax(self.model.predict(np.reshape(state, (1, self.state_size)))[0])
 
 	def replay(self, batch_size):

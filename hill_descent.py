@@ -17,12 +17,14 @@ grid_length, grid_width = 3, 3
 grid_height = 25
 directions = ['movenorth 1', 'moveeast 1', 'movesouth 1', 'movewest 1']
 
+checkpoints = [1, 15, 100, 500, 1000]
+
 state_size = 9
 action_size = 4
-learning_rate = 0.001
-discount_rate = 0.95
+learning_rate = 1.0
+discount_rate = 0.05
 epsilon = 1.0
-epsilon_decay = 0.995
+epsilon_decay = 0.999
 epsilon_min = 0.01
 episodes = 10000
 
@@ -89,7 +91,7 @@ def get_current_block(data):
 def get_state(data):
 	results = [-grid_height] * (grid_length * grid_width)
 	for i in range(len(data['sight']))[::-1]:
-		if results[i % (grid_length * grid_width)] == -grid_height and data['sight'][i] == 'grass':
+		if results[i % (grid_length * grid_width)] == -grid_height and data['sight'][i] != 'air':
 			results[i % (grid_length * grid_width)] = i // (grid_length * grid_width) - grid_height
 	return results # face negative-z/north direction
 
@@ -105,6 +107,11 @@ def wait_world_state(agent_host):
 		data = json.loads(world_state.observations[-1].text)
 	time.sleep(0.1)
 	return agent_host.getWorldState()
+
+def calculate_damage(prev_y, current_y):
+	if prev_y - current_y <= 3:
+		return 0
+	return (prev_y - current_y) - 3
 
 def main():
 	my_xml = '''<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
@@ -126,7 +133,7 @@ def main():
 	  <AgentSection mode="Survival">
 	    <Name>Bob</Name>
 	    <AgentStart>
-	      <Placement x="2.5" y="27" z="1002.5" pitch="30" yaw="0"/>
+	      <Placement x="1.5" y="11" z="1001.5" pitch="30" yaw="0"/>
 	    </AgentStart>
 	    <AgentHandlers>
 	      <DiscreteMovementCommands/>
@@ -152,7 +159,7 @@ def main():
 	    </AgentHandlers>
 	  </AgentSection>
 	</Mission>
-	'''.format(xml_hill(5), -(grid_length - 1) // 2, -grid_height, -(grid_width - 1) // 2,
+	'''.format(xml_hill(3), -(grid_length - 1) // 2, -grid_height, -(grid_width - 1) // 2,
 		(grid_length - 1) // 2, grid_height, (grid_width - 1) // 2)
 
 	agent = DQNAgent(state_size, action_size, learning_rate, discount_rate, epsilon, epsilon_min, epsilon_decay)
@@ -185,25 +192,39 @@ def main():
 			if world_state.number_of_observations_since_last_state > 0:
 				obvsText = world_state.observations[-1].text
 				data = json.loads(obvsText)
+
 				state = get_state(data)
+				prev_x = data.get(u'XPos', 0)
 				prev_y = data.get(u'YPos', 0)
-				prev_damage = data['DamageTaken']
+				prev_z = data.get(u'ZPos', 0)
+
 				action = agent.act(state)
 				agent_host.sendCommand(directions[action])
-				time.sleep(0.2)
+				time.sleep(0.3)
+
 				world_state = wait_world_state(agent_host)
 				obvsText = world_state.observations[-1].text
 				data = json.loads(obvsText)
+
+				current_x = data.get(u'XPos', 0)
 				current_y = data.get(u'YPos', 0)
-				current_damage = data['DamageTaken']
+				current_z = data.get(u'ZPos', 0)
+				damage_taken = calculate_damage(prev_y, current_y)
 				next_state = get_state(data)
-				reward = (prev_y - current_y) - 20 * (prev_damage - current_damage)
+
+				# print("previous and current y", prev_y, current_y)
+				# print("damage taken", damage_taken)
+
+				reward = (prev_y - current_y) - 50 * damage_taken if prev_x != current_x or prev_y != current_y or prev_z != current_z else -1000
 				done = True if get_current_block(data) == 'cobblestone' or not world_state.is_mission_running else False
 				agent.remember(state, action, reward, next_state, done)
 				print('episode {}/{}, action: {}, reward: {}, e: {:.2}, done: {}'.format(e, episodes, directions[action], reward, agent.epsilon, done))
 
-				if len(agent.memory) > batch_size:
+				if e > batch_size:
 					agent.replay(batch_size)
+
+		if e in checkpoints:
+			agent.save('model_{}.h5'.format(e))
 		time.sleep(1)
 
 if __name__ == '__main__':
