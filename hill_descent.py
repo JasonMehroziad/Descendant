@@ -21,8 +21,8 @@ checkpoints = [1, 15, 100, 500, 1000]
 
 state_size = 9
 action_size = 4
-learning_rate = 1.0
-discount_rate = 0.05
+learning_rate = 0.01
+discount_rate = 0.95
 epsilon = 1.0
 epsilon_decay = 0.999
 epsilon_min = 0.01
@@ -100,12 +100,12 @@ def wait_world_state(agent_host):
 	obvsText = world_state.observations[-1].text
 	data = json.loads(obvsText)
 	while world_state.is_mission_running and get_current_block(data) == 'air':
-		time.sleep(0.1)
+		time.sleep(0.3)
 		world_state = agent_host.peekWorldState()
 		if len(world_state.observations) == 0:
 			break
 		data = json.loads(world_state.observations[-1].text)
-	time.sleep(0.1)
+	time.sleep(0.3)
 	return agent_host.getWorldState()
 
 def calculate_damage(prev_y, current_y):

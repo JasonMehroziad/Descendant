@@ -46,6 +46,7 @@ class DQNAgent:
 		if np.random.rand() < self.epsilon:
 			print("Random Action....: ", end = "")
 			return random.randrange(self.action_size)
+		print("Action Rewards: ", self.model.predict(np.reshape(state, (1, self.state_size)))[0])
 		print("Calculated Action: ", end = "")
 		return np.argmax(self.model.predict(np.reshape(state, (1, self.state_size)))[0])
 
@@ -54,7 +55,7 @@ class DQNAgent:
 		for state, action, reward, next_state, done in minibatch:
 			target = reward
 			if not done:
-				target = (reward + self.discount_rate * np.amax(self.model.predict(np.reshape(next_state, (1, self.state_size)))[0]))
+				target = (reward + self.discount_rate * np.amax(self.model.predict(np.reshape(state, (1, self.state_size)))[0]))
 			target_f = self.model.predict(np.reshape(state, (1, self.state_size)))
 			target_f[0][action] = target
 			self.model.fit(np.reshape(state, (1, self.state_size)), target_f, epochs=1, verbose=0)
