@@ -1,23 +1,26 @@
 try:
-    from malmo import MalmoPython
+	from malmo import MalmoPython
 except:
-    import MalmoPython
+	import MalmoPython
+
+from dqn_agent import DQNAgent
+import json
+import math
+# import matplotlib.pyplot as plt
+import numpy as np
 import os
+import pathlib
+import random
+import scipy.stats
 import sys
 import time
-import json
-import random
-import numpy as np
-import math
-import scipy.stats
-# import matplotlib.pyplot as plt
-from dqn_agent import DQNAgent
 
+spiral_size = 5
 grid_length, grid_width = 3, 3
 grid_height = 25
 directions = ['movenorth 1', 'moveeast 1', 'movesouth 1', 'movewest 1']
 
-checkpoints = [1, 15, 100, 500, 1000]
+checkpoints = [50, 100, 500, 1000]
 
 state_size = 9
 action_size = 4
@@ -26,7 +29,7 @@ discount_rate = 0.95
 epsilon = 1.0
 epsilon_decay = 0.999
 epsilon_min = 0.01
-episodes = 10000
+episodes = 1000
 
 def generate_hill_with_valleys(size, freq, oct, exp):
 	pass
@@ -70,7 +73,6 @@ def xml_hill(size):
     index = 1000 * size
     # height_input = generate_hill(size, 4)
     height_input = generate_spiral(size * size)
-    print(height_input)
     for height in height_input:
         if height < 0:
             xml += '<DrawCuboid x1="' + str(index % size) + \
@@ -100,12 +102,12 @@ def wait_world_state(agent_host):
 	obvsText = world_state.observations[-1].text
 	data = json.loads(obvsText)
 	while world_state.is_mission_running and get_current_block(data) == 'air':
-		time.sleep(0.3)
+		time.sleep(0.1)
 		world_state = agent_host.peekWorldState()
 		if len(world_state.observations) == 0:
 			break
 		data = json.loads(world_state.observations[-1].text)
-	time.sleep(0.3)
+	time.sleep(0.1)
 	return agent_host.getWorldState()
 
 def calculate_damage(prev_y, current_y):
@@ -113,7 +115,7 @@ def calculate_damage(prev_y, current_y):
 		return 0
 	return (prev_y - current_y) - 3
 
-def main():
+def main(model = None):
 	my_xml = '''<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 	<Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	  <About>
@@ -133,7 +135,7 @@ def main():
 	  <AgentSection mode="Survival">
 	    <Name>Bob</Name>
 	    <AgentStart>
-	      <Placement x="1.5" y="11" z="1001.5" pitch="30" yaw="0"/>
+	      <Placement x="{}.5" y="{}" z="{}.5" pitch="30" yaw="0"/>
 	    </AgentStart>
 	    <AgentHandlers>
 	      <DiscreteMovementCommands/>
@@ -159,20 +161,23 @@ def main():
 	    </AgentHandlers>
 	  </AgentSection>
 	</Mission>
-	'''.format(xml_hill(3), -(grid_length - 1) // 2, -grid_height, -(grid_width - 1) // 2,
-		(grid_length - 1) // 2, grid_height, (grid_width - 1) // 2)
+	'''.format(xml_hill(spiral_size), spiral_size // 2, spiral_size * spiral_size + 2, 1000 + spiral_size // 2, -(grid_length - 1) // 2,
+		-grid_height, -(grid_width - 1) // 2, (grid_length - 1) // 2, grid_height, (grid_width - 1) // 2)
 
+	batch_size = 32
 	agent = DQNAgent(state_size, action_size, learning_rate, discount_rate, epsilon, epsilon_min, epsilon_decay)
+	if model != None:
+		agent.load(model)
+		agent.epsilon = agent.epsilon_min
+		print('loaded model: {}'.format(model))
 
 	my_client_pool = MalmoPython.ClientPool()
 	my_client_pool.add(MalmoPython.ClientInfo("127.0.0.1", 10001))
 	agent_host = MalmoPython.AgentHost()
 
-	for e in range(episodes):
+	for e in range(episodes + 1):
 		my_mission = MalmoPython.MissionSpec(my_xml, True)
-
 		my_mission_record = MalmoPython.MissionRecordSpec()
-		
 		my_mission.requestVideo(800, 500)
 		my_mission.setViewpoint(1)
 		print("Waiting for the mission to start", end=' ')
@@ -186,7 +191,6 @@ def main():
 		        print("Error:",error.text)
 		print()
 		done = False
-		batch_size = 32
 		while world_state.is_mission_running:
 			world_state = agent_host.getWorldState()
 			if world_state.number_of_observations_since_last_state > 0:
@@ -223,9 +227,12 @@ def main():
 				if e > batch_size:
 					agent.replay(batch_size)
 
-		if e in checkpoints:
-			agent.save('model_{}.h5'.format(e))
+		if e in checkpoints and model == None:
+			agent.save('./models/model_{}.h5'.format(e))
 		time.sleep(1)
 
 if __name__ == '__main__':
-	main()
+	args = sys.argv
+	model = args[1] if len(args) > 1 else None
+	main(model)
+
