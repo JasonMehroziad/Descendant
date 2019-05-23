@@ -25,7 +25,11 @@ The agent is trained on a basic structure. Once training is complete, it (should
 
 # Evaluation
 
+
+
+
 # Remaining Goals
+
 
 # Resources Used
 We used the following python libraries in implementing the deep Q-learning algorithm: 
@@ -33,5 +37,6 @@ We used the following python libraries in implementing the deep Q-learning algor
   - tensorflow 
   - numpy
   
-The following articles were the basis of our design: 
+The following articles assisted in our design: 
   - [Deep Q-learning Reference](https://keon.io/deep-q-learning/?fbclid=IwAR2WyQjJg7nFgQeF_p72_Bt8FSkGCc4ZhJqcRipT2cmnb6MtbYu-mA7bTT0)
+  - [Malmo's Documentation](http://microsoft.github.io/malmo/0.30.0/Documentation/index.html)
