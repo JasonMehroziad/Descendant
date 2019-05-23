@@ -1,3 +1,3 @@
-# Descent
+# Descendant
 
-Github Pages link: [Descent](https://jasonmehroziad.github.io/Descent/ "Project Website")
+Github Pages link: [Descendant](https://jasonmehroziad.github.io/Descendant/ "Project Website")
