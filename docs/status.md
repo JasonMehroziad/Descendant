@@ -37,17 +37,17 @@ The variables of this function are as follows:
 
 Initially:
 
-<img src="images/model_inital.png" height="100" width="500">
+<img src="images/model_inital.png" height="200" width="1000">
 Descendent is starts with an epsilon greedy policy (ε = 1.0), acting completely at random. 
 
 After 100 episodes:
 
-<img src="images/model_100.png" height="100" width="500">
+<img src="images/model_100.png" height="200" width="1000">
 Descendent makes mostly random decisions, but has been trained enough to make good decisions when they are calculated using its MDP. ε = 0.8 at this point.
 
 After 500 episodes:
 
-<img src="images/model_500.png" height="100" width="500">
+<img src="images/model_500.png" height="200" width="1000">
 Descendent is fully trained, and can make its way down the hill safely and efficiently by taking the highest reward action predicted by its MDP. ε = 0.01, and by this point it is acting entirely on the policy built by its training. Because of the consistently good rewards received, we can consider the agent a success for descending basic structures.
 
 # Remaining Goals
