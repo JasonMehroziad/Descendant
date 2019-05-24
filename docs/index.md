@@ -3,8 +3,6 @@ layout: default
 title:  Home
 ---
 
-# Descendent
-
 [Github Repository](https://github.com/JasonMehroziad/Descendant)
 
 # Introduction
