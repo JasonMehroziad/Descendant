@@ -22,7 +22,7 @@ This reward function penalizes the agent for taking damage and rewards them for 
 
 The reward for each episode is used to train a neural network model to develop a Markov Decision Process (MDP), which can predict the agent's reward for taking a specific action. Over time, the chance the agent takes a random action, the variable ε, decays, and the agent starts acting by taking the best rewarded action according to the MDP. The neural network is trained by the following loss function:
 
-<img src="images/formula.PNG">
+<img src="images/formula.png">
 
 The variables of this function are as follows:
  - r is the return of the reward function mentioned previously
