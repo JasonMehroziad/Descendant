@@ -17,11 +17,12 @@ Stages:
 # Approach
 Descendant is trained with deep Q-learning to recognize the best option for every state of its climb down. The agent begins by following an epsilon greedy policy, randomly choosing moves independent of success or failure. During this greedy policy period, the agent is rewarded by the following function for each move it takes: 
 
+<img src="images/status_reward_code.PNG">
 This reward function penalizes the agent for taking damage and rewards them for the more downhill movement made without taking damage.
 
 The reward for each episode is used to train a neural network model to develop a Markov Decision Process (MDP), which can predict the agent's reward for taking a specific action. Over time, the chance the agent takes a random action, the variable ε, decays, and the agent starts acting by taking the best rewarded action according to the MDP. The neural network is trained by the following loss function:
 
-
+<img src="images/formula.PNG">
 The variables of this function are as follows:
  - r is the return of the reward function mentioned previously
  - γ is the discount factor, which tells the MDP how much to value new information it learns
@@ -35,14 +36,17 @@ The variables of this function are as follows:
 
 Initially:
 
+<img src="images/model_inital.png">
 Descendent is starts with an epsilon greedy policy (ε = 1.0), acting completely at random. 
 
 After 100 episodes:
 
+<img src="images/model_100.png">
 Descendent makes mostly random decisions, but has been trained enough to make good decisions when they are calculated using its MDP. ε = 0.8 at this point.
 
 After 500 episodes:
 
+<img src="images/model_500.png">
 Descendent is fully trained, and can make its way down the hill safely and efficiently by taking the highest reward action predicted by its MDP. ε = 0.01, and by this point it is acting entirely on the policy built by its training. Because of the consistently good rewards received, we can consider the agent a success for descending basic structures.
 
 # Remaining Goals
