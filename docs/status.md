@@ -13,7 +13,7 @@ Stages:
 # Video Summary
 
 # Approach
-Descendant is trained with deep Q-learning to recognize the best option for every state of its climb down. The agent begins by following a epsilon greedy policy, randomly choosing moves independent of success or failure. During this greedy policy period, the agent is rewarded by the following function for each move it takes: 
+Descendant is trained with deep Q-learning to recognize the best option for every state of its climb down. The agent begins by following an epsilon greedy policy, randomly choosing moves independent of success or failure. During this greedy policy period, the agent is rewarded by the following function for each move it takes: 
 
 ![image not found](https://github.com/JasonMehroziad/Descendant/blob/master/docs/images/status_reward_code.PNG)
 This reward function penalizes the agent for taking damage and rewards them for the more downhill movement made without taking damage.
@@ -30,10 +30,30 @@ The variables of this function are as follows:
 # Evaluation
 
 
+**Qualitatively**, Descendant is able to climb down stage 1 successfully after around 500 trials. The agent, once fully trained, can make its way to the bottom of the structure in a short amount of time without taking damage or becoming trapped. This satisfies the basic criteria for the project's success on a basic 3x3 stage. The agent also learned to take shortcuts, prioritizing moves that will bring it to the bottom faster. Due to this, the agent does not get trapped on walls or climb back up. The episodes shown in the status video show the agent's progress in throughout training and its eventual successful results. Based on the viewable evidence the agent is success for descending basic structures.
 
+**Quantitatively**, Descendant's training to minimize damage can also be seen by its reward output. The following display Descendant's rewards for its actions, along with whether they were random or calculated by the MDP neural network. 
+
+Initially:
+![image not found](https://github.com/JasonMehroziad/Descendant/blob/master/docs/images/model_inital.png)
+
+Descendent is starts with an epsilon greedy policy, acting completely at random. 
+
+After 100 episodes:
+![image not found](https://github.com/JasonMehroziad/Descendant/blob/master/docs/images/model_100.png)
+
+Descendent makes mostly random decisions, but has been trained enough to make good decisions when they are calculated using its MDP. ε = 0.8 at this point.
+
+After 500 episodes:
+![image not found](https://github.com/JasonMehroziad/Descendant/blob/master/docs/images/model_500.png)
+
+Descendent is fully trained, and can make its way down the hill safely and efficiently by taking the highest reward action predicted by its MDP. ε = 0.01, and by this point it is acting entirely on the policy built by its training. Because of the consistently good rewards received, we can consider the agent a success for descending basic structures.
 
 # Remaining Goals
 
+Currently the Descendent is only successful at descending small basic structures. In the coming weeks, we hope to increase the scale of the structures the agent can climb down. Eventually the agent should be able to reach the bottom of a 10x10 massive structure taking minimum damage in efficient time. It should also be noted that the initial stages (1&2), were designed with a spiraling optimal path. The final agent should be able to descend any sort of hill, not just those with spiraling paths, and will be tested accordingly. 
+
+Another way of increasing Descendant’s skill would be to add additional hazards to the structures, such as lava, death pits, and slight inclines. Adding inclines to the structures would be the final stretch goal, as training the agent to consider moving upwards as an optimal move will require advanced updates to the agent's reward function. This ties into another stretch goal, which is to make the agent less shortsighted. This could allow the agent to also consider the optimal path down in terms of total distance in addition to damage taken, optimizing it on multiple factors in the ideal case.
 
 # Resources Used
 We used the following python libraries in implementing the deep Q-learning algorithm: 
