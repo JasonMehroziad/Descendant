@@ -1,8 +1,9 @@
 from collections import deque
 import numpy as np
 import keras
+import pickle
 import random
-import time 
+import time
 
 class Memory:
 	def __init__(self, max_size):
@@ -10,6 +11,9 @@ class Memory:
 
 	def add(self, experience):
 		self.buffer.append(experience)
+
+	def load(self, buffer):
+		self.buffer = buffer
 
 	def sample(self, batch_size):
 		buffer_size = len(self.buffer)
@@ -63,8 +67,11 @@ class DQNAgent:
 			self.epsilon *= self.epsilon_decay
 
 	def load(self, name):
-		self.model.load_weights(name)
+		data = pickle.load(open(name, 'rb'))
+		self.model.set_weights(data['weights'])
+		self.memory.load(data['buffer'])
+		self.epsilon = data['epsilon']
 
 	def save(self, name):
-		self.model.save_weights(name)
-
+		data = {'epsilon': self.epsilon, 'buffer': self.memory.buffer, 'weights': self.model.get_weights()}
+		pickle.dump(data, open(name, 'wb'))

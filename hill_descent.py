@@ -21,10 +21,9 @@ grid_height = 25
 directions = ['movenorth 1', 'moveeast 1', 'movesouth 1', 'movewest 1']
 checkpoints = []
 for i in range(1, 41):
-        checkpoints.append(i * 100)
+    checkpoints.append(i * 100)
 
-
-state_size = 25
+state_size = grid_length * grid_width
 action_size = 4
 learning_rate = 0.01
 discount_rate = 0.95
@@ -140,15 +139,15 @@ def calculate_damage(prev_y, current_y):
                 return 0
         return (prev_y - current_y) - 3
 
-def main(model = None):
+def main(model = None, mode = 'train', start_episode = 0):
         my_xml = '''<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
         <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <About>
             <Summary>Hill Descent.</Summary>
           </About>
           <ModSettings>
-<MsPerTick>20</MsPerTick>
-</ModSettings>
+            <MsPerTick>20</MsPerTick>
+          </ModSettings>
           <ServerSection>
 
             <ServerInitialConditions>
@@ -166,7 +165,7 @@ def main(model = None):
           <AgentSection mode="Survival">
             <Name>Bob</Name>
             <AgentStart>
-              <Placement x="-323.5" y="89" z="1562.5" pitch="30" yaw="0"/>
+              <Placement x="-323.5" y="89" z="1562.5" pitch="-90" yaw="0"/>
             </AgentStart>
             <AgentHandlers>
               <DiscreteMovementCommands/>
@@ -212,7 +211,7 @@ def main(model = None):
                 my_mission = MalmoPython.MissionSpec(my_xml, True)
                 my_mission_record = MalmoPython.MissionRecordSpec()
                 my_mission.requestVideo(800, 500)
-                my_mission.setViewpoint(1)
+                my_mission.setViewpoint(2)
                 print("Waiting for the mission to start", end=' ')
                 agent_host.startMission(  my_mission, my_mission_record, )
                 world_state = agent_host.getWorldState()
@@ -264,28 +263,30 @@ def main(model = None):
                                 # print("damage taken", damage_taken)
 
                                 reward = (prev_y - current_y) - 50 * damage_taken if prev_x != current_x or prev_y != current_y or prev_z != current_z else -1000
-                                done = True if current_y <= 63 or not world_state.is_mission_running else False
+                                done = True if current_y <= 63 or not world_state.is_mission_running or data['Life'] <= 0 else False
                                 agent.remember(state, action, reward, next_state, done)
                                 print('episode {}/{}, action: {}, reward: {}, e: {:.2}, move: {}, done: {}'.format(e, episodes, directions[action], reward, agent.epsilon, moves, done))
                                 moves += 1
 
                                 if e > batch_size:
                                         agent.replay(batch_size)
-                                if e in checkpoints:
-                                        new_file = open("epsilon.txt", "a")
-                                        new_file.write(str(agent.epsilon) + "\n")
-                                        new_file.close()
-                                
-                                if done or moves > 100:
-                                        agent_host.sendCommand("quit")
 
-                if e in checkpoints and model == None:
-                        agent.save('./models/model_{}.h5'.format(e))
+                                if done or moves > 100:
+                                    agent_host.sendCommand("quit")
+                                
+                if mode == 'train' and (e in checkpoints or agent.epsilon <= epsilon_min):
+                    print('saving model at episode {}'.format(e))
+                    agent.save('./models/model_{}'.format(e))
+                    if agent.epsilon <= epsilon_min:
+                        break
 
                 time.sleep(1)
+                # my_mission.forceWorldReset()
 
 if __name__ == '__main__':
         args = sys.argv
         model = args[1] if len(args) > 1 else None
-        main(model)
+        mode = args[2] if len(args) > 2 else 'train'
+        start_episode = int(args[3]) if len(args) > 3 else 0
+        main(model, mode, start_episode)
 
