@@ -24,13 +24,14 @@ jump_directions = ['jumpnorth 1', 'jumpeast 1', 'jumpsouth 1', 'jumpwest 1']
 checkpoints = [i * 100 for i in range(1, 41)]
 max_moves = 100
 
-state_size = grid_width * grid_width
+# state_size = grid_width * grid_width
+state_size = 12
 action_size = 4
 learning_rate = 0.01
 discount_rate = 0.95
 epsilon = 1.0
 epsilon_decay = 0.9999
-epsilon_min = 0.01
+epsilon_min = 0.001
 episodes = 2000
 
 def generate_hill_with_valleys(size, freq, oct, exp):
@@ -192,7 +193,7 @@ def main(model = None, mode = 'train', start_episode = 0):
     if model != None:
         agent.load(model)
         if mode == 'test':
-        	agent.epsilon = agent.epsilon_min
+        	agent.epsilon = 0.0
         print('loaded model: {}'.format(model))
     else:
         clear_csv('./data/results.csv')
