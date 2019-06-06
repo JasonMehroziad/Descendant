@@ -16,12 +16,15 @@ import sys
 import time
 
 spiral_size = 5
-grid_length, grid_width = 5, 5
+grid_width = 5
 grid_height = 25
+grid_center = grid_width ** 2 // 2
 directions = ['movenorth 1', 'moveeast 1', 'movesouth 1', 'movewest 1']
+jump_directions = ['jumpnorth 1', 'jumpeast 1', 'jumpsouth 1', 'jumpwest 1']
 checkpoints = [i * 100 for i in range(1, 41)]
+max_moves = 100
 
-state_size = grid_length * grid_width
+state_size = grid_width * grid_width
 action_size = 4
 learning_rate = 0.01
 discount_rate = 0.95
@@ -51,20 +54,20 @@ def generate_spiral(height):
     center = ((grid_size // 2 - adjustment), (grid_size // 2 - adjustment))
     current_position = center
     for h in range(height, 0, -1):
-            x, y = current_position
-            grid[x][y] = h
-            possible = []
-            if x > 0 and grid[x - 1][y] == 0:
-                    possible.append((x - 1, y))
-            if y > 0 and grid[x][y - 1] == 0:
-                    possible.append((x, y - 1))
-            if x < grid_size - 1 and grid[x + 1][y] == 0:
-                    possible.append((x + 1, y))
-            if y < grid_size - 1 and grid[x][y + 1] == 0:
-                    possible.append((x, y + 1))
-            if len(possible) == 0:
-                    break
-            current_position = sorted(possible, key = lambda x: math.hypot(center[0] - x[0], center[1] - x[1]))[0]
+        x, y = current_position
+        grid[x][y] = h
+        possible = []
+        if x > 0 and grid[x - 1][y] == 0:
+                possible.append((x - 1, y))
+        if y > 0 and grid[x][y - 1] == 0:
+                possible.append((x, y - 1))
+        if x < grid_size - 1 and grid[x + 1][y] == 0:
+                possible.append((x + 1, y))
+        if y < grid_size - 1 and grid[x][y + 1] == 0:
+                possible.append((x, y + 1))
+        if len(possible) == 0:
+                break
+        current_position = sorted(possible, key = lambda x: math.hypot(center[0] - x[0], center[1] - x[1]))[0]
     return [i for row in grid for i in row]
 
 def xml_hill(size):
@@ -90,52 +93,47 @@ def get_current_block(data):
     return data['feet'][0]
 
 def get_state(data):
-    results = [-grid_height] * (grid_length * grid_width)
+    results = [-grid_height] * (grid_width * grid_width)
     for i in range(len(data['sight']))[::-1]:
-            if results[i % (grid_length * grid_width)] == -grid_height and data['sight'][i] != 'air':
-                    results[i % (grid_length * grid_width)] = i // (grid_length * grid_width) - grid_height
+        if results[i % (grid_width * grid_width)] == -grid_height and data['sight'][i] != 'air':
+            results[i % (grid_width * grid_width)] = i // (grid_width * grid_width) - grid_height
     return results # face negative-z/north direction
 
 def wait_world_state(agent_host, world_state):
     obsText = world_state.observations[-1].text
     data = json.loads(obsText)
     try:
-            world_state = agent_host.peekWorldState()
-            obsText = world_state.observations[-1].text
-            data = json.loads(obsText)
+        world_state = agent_host.peekWorldState()
+        obsText = world_state.observations[-1].text
+        data = json.loads(obsText)
     except:
-            print("Error in getting world state")
-            
-    
-##        try:
-##                world_state = agent_host.peekWorldState()
-##                obvsText = world_state.observations[-1].text
-##                data = json.loads(obvsText)
-##        except:
-##                print("Error in trying to get world_state")
+        print("Error in getting world state")
     while world_state.is_mission_running and get_current_block(data) == 'air':
-            time.sleep(0.1)
-            try:
-                    world_state = agent_host.peekWorldState()
-                    if len(world_state.observations) == 0:
-                            break
-                    data = json.loads(world_state.observations[-1].text)
-            except:
-                    print("Error in getting world state")
-##              time.sleep(0.1)                
-##                world_state = agent_host.peekWorldState()
-##                if len(world_state.observations) == 0:
-##                        break
-##                data = json.loads(world_state.observations[-1].text)
-            
-
+        time.sleep(0.1)
+        try:
+            world_state = agent_host.peekWorldState()
+            if len(world_state.observations) == 0:
+                break
+            data = json.loads(world_state.observations[-1].text)
+        except:
+            print("Error in getting world state")
     time.sleep(0.1)
     return world_state
 
 def calculate_damage(prev_y, current_y):
     if prev_y - current_y <= 3:
-            return 0
+        return 0
     return (prev_y - current_y) - 3
+
+def clear_csv(filename):
+    line = open(filename, 'r').readline()
+    with open(filename, 'w') as file:
+        file.write(line)
+
+def write_to_csv(filename, data):
+    with open(filename, 'a') as file:
+        line = ('{},' * len(data))[:-1] + '\n'
+        file.write(line.format(*data))
 
 def main(model = None, mode = 'train', start_episode = 0):
     my_xml = '''<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
@@ -179,11 +177,6 @@ def main(model = None, mode = 'train', start_episode = 0):
                   <max x="0" y="-1" z="0"/>
               </Grid>
       </ObservationsationFromGrid>
-          <RewardForTouchingBlockType>
-            <Block reward="-100.0" type="lava" behaviour="onceOnly"/>
-            <Block reward="100.0" type="lapis_block" behaviour="onceOnly"/>
-          </RewardForTouchingBlockType>
-          <RewardForSendingCommand reward="-1" />
           <AgentQuitFromTouchingBlockType>
               <Block type="cobblestone" />
           </AgentQuitFromTouchingBlockType>
@@ -191,21 +184,24 @@ def main(model = None, mode = 'train', start_episode = 0):
       </AgentSection>
     </Mission>
 
-    '''.format(-(grid_length - 1) // 2,
-            -grid_height, -(grid_width - 1) // 2, (grid_length - 1) // 2, grid_height, (grid_width - 1) // 2)
+    '''.format(-(grid_width - 1) // 2,
+            -grid_height, -(grid_width - 1) // 2, (grid_width - 1) // 2, grid_height, (grid_width - 1) // 2)
 
     batch_size = 100
     agent = DQNAgent(state_size, action_size, learning_rate, discount_rate, epsilon, epsilon_min, epsilon_decay)
     if model != None:
         agent.load(model)
-        agent.epsilon = agent.epsilon_min
+        if mode == 'test':
+        	agent.epsilon = agent.epsilon_min
         print('loaded model: {}'.format(model))
+    else:
+        clear_csv('./data/results.csv')
 
     my_client_pool = MalmoPython.ClientPool()
     my_client_pool.add(MalmoPython.ClientInfo("127.0.0.1", 10001))
     agent_host = MalmoPython.AgentHost()
 
-    for e in range(episodes + 1):
+    for e in range(start_episode + 1, episodes + 1):
         my_mission = MalmoPython.MissionSpec(my_xml, True)
         my_mission_record = MalmoPython.MissionRecordSpec()
         my_mission.requestVideo(800, 500)
@@ -220,8 +216,8 @@ def main(model = None, mode = 'train', start_episode = 0):
             for error in world_state.errors:
                 print("Error:",error.text)
         print()
-        done = False
         moves = 0
+        episode_reward = 0
         while world_state.is_mission_running:
             world_state = agent_host.getWorldState()
             if world_state.number_of_observations_since_last_state > 0:
@@ -238,11 +234,21 @@ def main(model = None, mode = 'train', start_episode = 0):
                 prev_y = data.get(u'YPos', 0)
                 prev_z = data.get(u'ZPos', 0)
 
-                action = agent.act(state)
+                useful_state = [state[2], state[6], state[7], state[8], \
+                    state[10], state[11], state[13], \
+                    state[14], state[16], state[17], \
+                    state[18], state[22]]
 
-                if ()
-                agent_host.sendCommand(directions[action])
-                time.sleep(0.3)
+                action = agent.act(useful_state)
+
+                if ((action == 0 and state[grid_center - grid_width] == 0) or 
+                    (action == 1 and state[grid_center + 1] == 0) or 
+                    (action == 2 and state[grid_center + grid_width] == 0) or
+                    (action == 3 and state[grid_center - 1] == 0)):
+                    agent_host.sendCommand(jump_directions[action])
+                else:
+                    agent_host.sendCommand(directions[action])
+                time.sleep(0.1)
 
                 try:
                     world_state = wait_world_state(agent_host, world_state)
@@ -258,22 +264,35 @@ def main(model = None, mode = 'train', start_episode = 0):
                 damage_taken = calculate_damage(prev_y, current_y)
                 next_state = get_state(data)
 
+                useful_next_state = [state[2], state[6], state[7], state[8], \
+                    state[10], state[11], state[13], \
+                    state[14], state[16], state[17], \
+                    state[18], state[22]]
+
                 # print("previous and current y", prev_y, current_y)
                 # print("damage taken", damage_taken)
 
-                reward = (prev_y - current_y) - 50 * damage_taken if prev_x != current_x or prev_y != current_y or prev_z != current_z else -1000
+                reward = 2 * (prev_y - current_y) - 50 * damage_taken - 1 if prev_x != current_x or prev_y != current_y or prev_z != current_z else -1000
+                episode_reward += reward
                 done = True if current_y <= 63 or not world_state.is_mission_running or data['Life'] <= 0 else False
-                agent.remember(state, action, reward, next_state, done)
-                print('episode {}/{}, action: {}, reward: {}, e: {:.2}, move: {}, done: {}'.format(e, episodes, directions[action], reward, agent.epsilon, moves, done))
+
+                agent.remember(useful_state, action, reward, useful_next_state, done)
+                if ((action == 0 and state[grid_center - grid_width] == 0) or 
+                    (action == 1 and state[grid_center + 1] == 0) or 
+                    (action == 2 and state[grid_center + grid_width] == 0) or
+                    (action == 3 and state[grid_center - 1] == 0)):
+                    print('episode {}/{}, action: {}, reward: {}, e: {:.2}, move: {}, done: {}'.format(e, episodes, jump_directions[action], reward, agent.epsilon, moves, done))
+                else:
+                    print('episode {}/{}, action: {}, reward: {}, e: {:.2}, move: {}, done: {}'.format(e, episodes, directions[action], reward, agent.epsilon, moves, done))
                 moves += 1
 
                 if e > batch_size:
-                        agent.replay(batch_size)
+                    agent.replay(batch_size)
 
-                if done or moves > 100:
-                    agent_host.sendCommand("quit")
+                if done or moves > max_moves:
+                   agent_host.sendCommand("quit")
                     
-            if mode == 'train' and (e in checkpoints or agent.epsilon <= epsilon_min):
+            if (mode == 'train' or model == None) and (e in checkpoints or agent.epsilon <= epsilon_min):
                 print('saving model at episode {}'.format(e))
                 agent.save('./models/model_{}'.format(e))
                 if agent.epsilon <= epsilon_min:
@@ -281,6 +300,8 @@ def main(model = None, mode = 'train', start_episode = 0):
 
             time.sleep(1)
             # my_mission.forceWorldReset()
+        if mode == 'train' or model == None:
+            write_to_csv('./data/results.csv', [e, episode_reward, moves, int(episode_reward > 0)])
 
 if __name__ == '__main__':
     args = sys.argv
