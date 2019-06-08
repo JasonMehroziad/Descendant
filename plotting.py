@@ -4,32 +4,14 @@ import pandas as pd
 import math
 import scipy.interpolate as ip
 
-# todo (discuss with group):
-#
-#   - reward per episode (messy, dashed line for optimum)
-#   - average reward per episode (messy)
-#   - moves per episode (dashed line for optimum)
-#   - error for reward (messy)
-#   - error for moves
-#   - successes over time (determine what a success is: no damage taken or positive reward)
-#
-#   - maybe epsilon over time?
-#   - maybe benchmark graphs with random agent?
-#
-# todo (test):
-#
-#   - test jumping
-#   - test csv writing/data collection
-#   - test plotting
-
 def plot_from_file(fname):
     data = pd.read_csv(fname, sep=',')
 
     # reward per episode
     optimum_reward = 0
     plt.plot(data['episode'].values, data['reward'].values, 
-        marker_style = 'None', line_style = '-', color = 'b')
-    plt.axhline(y = optimum_reward, color = 'r', line_style = '--')
+        marker = 'None', linestyle = '-', color = 'b')
+    plt.axhline(y = optimum_reward, color = 'r', linestyle = '--')
     plt.xlabel('episode')
     plt.ylabel('reward')
     plt.title('Reward Per Episode')
@@ -38,7 +20,7 @@ def plot_from_file(fname):
 
     # average reward per episode
     plt.plot(data['episode'].values, np.divide(data['reward'].values, data['moves'].values), 
-        marker_style = 'None', line_style = '-', color = 'b')
+        marker = 'None', linestyle = '-', color = 'b')
     plt.xlabel('episode')
     plt.ylabel('average reward')
     plt.title('Average Reward Per Episode')
@@ -48,8 +30,8 @@ def plot_from_file(fname):
     # moves per episode
     optimum_moves = 0
     plt.plot(data['episode'].values, data['moves'].values, 
-        marker_style = 'None', line_style = '-', color = 'b')
-    plt.axhline(y = optimum_moves, color = 'r', line_style = '--')
+        marker = 'None', linestyle = '-', color = 'b')
+    plt.axhline(y = optimum_moves, color = 'r', linestyle = '--')
     plt.xlabel('episode')
     plt.ylabel('moves')
     plt.title('Number of Moves Per Episode')
@@ -58,7 +40,7 @@ def plot_from_file(fname):
 
     # success over time
     plt.plot(data['episode'].values, np.cumsum(data['success'].values), 
-        marker_style = 'None', line_style = '-', color = 'b')
+        marker = 'None', linestyle = '-', color = 'b')
     plt.xlabel('episode')
     plt.ylabel('cumulative successes')
     plt.title('Cumulative Successes over Time')

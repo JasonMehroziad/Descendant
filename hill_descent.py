@@ -155,7 +155,7 @@ def main(model = None, mode = 'train', start_episode = 0):
 
           <DefaultWorldGenerator seed="CKND" forceReset="false" destroyAfterUse="false" />
 
-          <ServerQuitFromTimeUp timeLimitMs="100000000"/>
+          <ServerQuitFromTimeUp timeLimitMs="300000"/>
           <ServerQuitWhenAnyAgentFinishes/>
         </ServerHandlers>
       </ServerSection>
@@ -184,7 +184,6 @@ def main(model = None, mode = 'train', start_episode = 0):
         </AgentHandlers>
       </AgentSection>
     </Mission>
-
     '''.format(-(grid_width - 1) // 2,
             -grid_height, -(grid_width - 1) // 2, (grid_width - 1) // 2, grid_height, (grid_width - 1) // 2)
 
@@ -249,11 +248,7 @@ def main(model = None, mode = 'train', start_episode = 0):
                     agent_host.sendCommand(jump_directions[action])
                 else:
                     agent_host.sendCommand(directions[action])
-                time.sleep(0.25)
-                #print("North:", state[grid_center - grid_width], \
-                #      "  East:", state[grid_center + 1], \
-                #      "  South:", state[grid_center + grid_width], \
-                #      "  West:", state[grid_center - 1])
+                time.sleep(0.1)
 
                 try:
                     world_state = wait_world_state(agent_host, world_state)
@@ -276,9 +271,7 @@ def main(model = None, mode = 'train', start_episode = 0):
 
                 # print("previous and current y", prev_y, current_y)
                 # print("damage taken", damage_taken)
-                #print("X:", prev_x, current_x, "\n", \
-                #      "Y:", prev_y, current_y, "\n", \
-                #      "Z:", prev_z, current_z, "\n")
+
                 reward = 2 * (prev_y - current_y) - 50 * damage_taken - 1 if prev_x != current_x or prev_y != current_y or prev_z != current_z else -1000
                 episode_reward += reward
                 done = True if current_y <= 63 or not world_state.is_mission_running or data['Life'] <= 0 else False
