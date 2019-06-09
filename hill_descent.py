@@ -33,6 +33,7 @@ epsilon = 1.0
 epsilon_decay = 0.9999
 epsilon_min = 0.001
 episodes = 2000
+goal_height = 69
 
 def generate_hill_with_valleys(size, freq, oct, exp):
     pass
@@ -153,20 +154,21 @@ def main(model = None, mode = 'train', start_episode = 0):
         </ServerInitialConditions>
         <ServerHandlers>
 
-          <DefaultWorldGenerator seed="CKND" forceReset="false" destroyAfterUse="false" />
+          <DefaultWorldGenerator seed="-999595225643433963" forceReset="false" destroyAfterUse="false" />
 
-          <ServerQuitFromTimeUp timeLimitMs="300000"/>
+          <ServerQuitFromTimeUp timeLimitMs="100000000"/>
           <ServerQuitWhenAnyAgentFinishes/>
         </ServerHandlers>
       </ServerSection>
       <AgentSection mode="Survival">
         <Name>Bob</Name>
         <AgentStart>
-          <Placement x="-323.5" y="89" z="1562.5" pitch="-90" yaw="0"/>
+          <Placement x="28.5" y="87" z="330.5" pitch="-90" yaw="0"/>
         </AgentStart>
         <AgentHandlers>
           <DiscreteMovementCommands/>
           <MissionQuitCommands quitDescription="done"/>
+          <ChatCommands/>
           <ObservationFromFullStats/>
           <ObservationFromGrid>
               <Grid name="sight">
@@ -184,6 +186,7 @@ def main(model = None, mode = 'train', start_episode = 0):
         </AgentHandlers>
       </AgentSection>
     </Mission>
+
     '''.format(-(grid_width - 1) // 2,
             -grid_height, -(grid_width - 1) // 2, (grid_width - 1) // 2, grid_height, (grid_width - 1) // 2)
 
@@ -216,6 +219,9 @@ def main(model = None, mode = 'train', start_episode = 0):
             for error in world_state.errors:
                 print("Error:",error.text)
         print()
+        agent_host.sendCommand('chat /kill @e[type=Chicken]')
+        agent_host.sendCommand('chat /kill @e[type=Pig]')
+        agent_host.sendCommand('chat /kill @e[type=Cow]')
         moves = 0
         episode_reward = 0
         while world_state.is_mission_running:
@@ -248,7 +254,11 @@ def main(model = None, mode = 'train', start_episode = 0):
                     agent_host.sendCommand(jump_directions[action])
                 else:
                     agent_host.sendCommand(directions[action])
-                time.sleep(0.1)
+                time.sleep(0.25)
+                #print("North:", state[grid_center - grid_width], \
+                #      "  East:", state[grid_center + 1], \
+                #      "  South:", state[grid_center + grid_width], \
+                #      "  West:", state[grid_center - 1])
 
                 try:
                     world_state = wait_world_state(agent_host, world_state)
@@ -271,10 +281,12 @@ def main(model = None, mode = 'train', start_episode = 0):
 
                 # print("previous and current y", prev_y, current_y)
                 # print("damage taken", damage_taken)
-
+                #print("X:", prev_x, current_x, "\n", \
+                #      "Y:", prev_y, current_y, "\n", \
+                #      "Z:", prev_z, current_z, "\n")
                 reward = 2 * (prev_y - current_y) - 50 * damage_taken - 1 if prev_x != current_x or prev_y != current_y or prev_z != current_z else -1000
                 episode_reward += reward
-                done = True if current_y <= 63 or not world_state.is_mission_running or data['Life'] <= 0 else False
+                done = True if current_y <= goal_height or not world_state.is_mission_running or data['Life'] <= 0 else False
 
                 agent.remember(useful_state, action, reward, useful_next_state, done)
                 if ((action == 0 and state[grid_center - grid_width] == 0) or 
