@@ -48,5 +48,5 @@ def plot_from_file(fname):
     plt.close()
 
 if __name__ == '__main__':
-	plot_from_file('./data/results.csv')
+	plot_from_file('./data/results_0_1.csv')
 

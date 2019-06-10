@@ -27,7 +27,7 @@ max_moves = 100
 # state_size = grid_width * grid_width
 state_size = 12
 action_size = 4
-learning_rate = 0.01
+learning_rate = 0.1
 discount_rate = 0.95
 epsilon = 1.0
 epsilon_decay = 0.9999
@@ -199,6 +199,7 @@ def main(model = None, mode = 'train', start_episode = 0):
         print('loaded model: {}'.format(model))
     else:
         clear_csv('./data/results.csv')
+        clear_csv('./data/moves.csv')
 
     my_client_pool = MalmoPython.ClientPool()
     my_client_pool.add(MalmoPython.ClientInfo("127.0.0.1", 10001))
@@ -224,6 +225,7 @@ def main(model = None, mode = 'train', start_episode = 0):
         agent_host.sendCommand('chat /kill @e[type=Cow]')
         moves = 0
         episode_reward = 0
+
         while world_state.is_mission_running:
             world_state = agent_host.getWorldState()
             if world_state.number_of_observations_since_last_state > 0:
@@ -298,19 +300,22 @@ def main(model = None, mode = 'train', start_episode = 0):
                     print('episode {}/{}, action: {}, reward: {}, e: {:.2}, move: {}, done: {}'.format(e, episodes, directions[action], reward, agent.epsilon, moves, done))
                 moves += 1
 
+                if mode == 'train' or model == None:
+                    write_to_csv('./data/moves.csv', [e, current_x, current_y, current_z, reward])
+
                 if e > batch_size:
                     agent.replay(batch_size)
 
                 if done or moves > max_moves:
                    agent_host.sendCommand("quit")
                     
-            if (mode == 'train' or model == None) and (e in checkpoints or agent.epsilon <= epsilon_min):
-                print('saving model at episode {}'.format(e))
-                agent.save('./models/model_{}'.format(e))
-                if agent.epsilon <= epsilon_min:
-                    break
+        if (mode == 'train' or model == None) and (e in checkpoints or agent.epsilon <= epsilon_min):
+            print('saving model at episode {}'.format(e))
+            agent.save('./models/model_{}'.format(e))
+            if agent.epsilon <= epsilon_min:
+                break
 
-            time.sleep(1)
+        time.sleep(1)
             # my_mission.forceWorldReset()
         if mode == 'train' or model == None:
             write_to_csv('./data/results.csv', [e, episode_reward, moves, int(episode_reward > 0)])
