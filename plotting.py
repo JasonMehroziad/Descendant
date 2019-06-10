@@ -28,7 +28,7 @@ def plot_from_file(fname):
     plt.close()
 
     # moves per episode
-    optimum_moves = 0
+    optimum_moves = 26
     plt.plot(data['episode'].values, data['moves'].values, 
         marker = 'None', linestyle = '-', color = 'b')
     plt.axhline(y = optimum_moves, color = 'r', linestyle = '--')
@@ -48,5 +48,5 @@ def plot_from_file(fname):
     plt.close()
 
 if __name__ == '__main__':
-	plot_from_file('./data/results_0_1.csv')
+	plot_from_file('./data/practice hill/results_0_1 old.csv')
 
