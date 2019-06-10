@@ -37,3 +37,11 @@ The agent had an constant learning rate of 0.1. We didn’t want the learning ra
 # Evaluation
 
 # References
+We used the following python libraries in implementing the deep Q-learning algorithm, in addition to Malmo: 
+  - keras
+  - tensorflow 
+  - numpy
+  
+The following articles assisted in our design: 
+  - [Deep Q-learning Reference](https://keon.io/deep-q-learning/?fbclid=IwAR2WyQjJg7nFgQeF_p72_Bt8FSkGCc4ZhJqcRipT2cmnb6MtbYu-mA7bTT0)
+  - [Malmo's Documentation](http://microsoft.github.io/malmo/0.30.0/Documentation/index.html)
