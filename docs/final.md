@@ -35,8 +35,29 @@ The variables of this function are as follows:
 The agent had an constant learning rate of 0.1. We didn’t want the learning rate too low or the agent would take too long to train; we didn’t want the learning rate too high or performance may diverge. Also, the agent had a discount rate of 0.95 because we didn’t want our agent to be too short-sighted. Finally, the agent starts off an epsilon, which is the chance the agent takes a random action, of 1.0, but its epsilon gradually decreases multiplicatively by 0.9999. Over time, the chance the agent takes a random action decays, and the agent starts acting by taking the best rewarded action. 
 
 # Evaluation
+### Quantitative Measures
+We quantitatively measured our agent using two main metrics:
+ - Rewards per episode
+ - Moves per episode
+ 
+We calculated rewards per episode by adding up all the rewards for every move made during that episode and the moves per episode is self-explanatory. We tested the agent we created on a simple, real Minecraft hill that includes small, non-fatal cliffs, plateas, ditches, etc. We then recorded and graphed the results of that training. Below is a graph of rewards per episode.
 
-# References
+<img src="images/ph_reward_per_episode.png" height="600" width="800">
+
+As you can see, the beginning of the graph seems very erratic and the rewards per episode are very negative, up to -100000. This is mainly because the agent has such a high epsilon in the beginning of the training; it would take a random action for virtually every move. However, as the agent gets trained, the epsilon gets lowered and the agent learns how to act in specific situations. By around episode 600, the agent basically mastered the hill’s obstacles (plateas, ditches, cliffs, etc.) and can traverse it almost perfectly without taking any negative reward penalties at all. Below is a graph of the moves per episode.
+
+<img src="images/ph_moves_per_episode.png" height="600" width="800">
+
+As you can see, the beginning of the graph seems very erratic and the moves per episode seems to always reach our maximum moves limit of 100. The reason the agent seems so stagnant is because the agent has such a high epsilon in the beginning of the training; it would take a random action for virtually every move. Along with this, the agent at the beginning gets stuck on the plateau at the top of the hill. By episode 800, the agent reaches the optimal number of moves to the bottom of the hill. Below is a graph of cumulative successes.
+
+<img src="images/ph_cumulative_successes.png" height="600" width="800">
+
+Using the rewards per episode metric, we gauged whether the agent succeeded or not based on whether or not the reward for that specific episode is positive. As stated before, the agent takes a random action for virtually every move, so there’s a low probability of the agent succeeding. However, after episode 600, once it the agent learns what to do in certain situations (plateas, ditches, cliffs, etc.), the agents succeeds for almost every episode afterwards.
+
+### Qualitative Measure
+...
+
+## References
 We used the following python libraries in implementing the deep Q-learning algorithm, in addition to Malmo: 
   - keras
   - tensorflow 
