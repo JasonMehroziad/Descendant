@@ -6,11 +6,11 @@ title:  Team
 # {{ page.title }}
 
 
-## USER 1
+## Jason Mehroziad
 ***UCI Net ID***: BMEHROZI
 
-## USER 2
+## Shubham Mahajan
 ***UCI Net ID***: SMAHAJA1
 
-## USER 3
+## Daniel Jiang
 ***UCI Net ID***: DWJIANG
